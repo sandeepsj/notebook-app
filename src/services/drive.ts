@@ -10,7 +10,7 @@
 // createdAt, updatedAt) so the home page can list notebooks without
 // downloading any pages.
 
-import type { NotebookMeta, Page, PageStyle, Stroke } from '@/types'
+import type { Block, NotebookMeta, Page, PageStyle, Stroke } from '@/types'
 
 const DRIVE_API = 'https://www.googleapis.com/drive/v3'
 const UPLOAD_API = 'https://www.googleapis.com/upload/drive/v3'
@@ -192,10 +192,25 @@ export async function deleteNotebook(token: string, id: string): Promise<void> {
 
 interface PageDoc {
   pageNumber: number
-  ink: Stroke[]
-  sketch: Stroke[]
-  text: string
+  blocks?: Block[]
   updatedAt: string
+  // Legacy fields (pre-block model) — migrated on read.
+  ink?: Stroke[]
+  sketch?: Stroke[]
+  text?: string
+}
+
+/** Map a legacy {ink, sketch, text} page document into the block model. */
+function migrateLegacy(doc: PageDoc): Block[] {
+  const blocks: Block[] = []
+  if (doc.text && doc.text.trim()) {
+    blocks.push({ kind: 'text', id: crypto.randomUUID(), text: doc.text })
+  }
+  const strokes = [...(doc.ink ?? []), ...(doc.sketch ?? [])]
+  if (strokes.length > 0) {
+    blocks.push({ kind: 'sketch', id: crypto.randomUUID(), strokes })
+  }
+  return blocks
 }
 
 function pageFileName(pageNumber: number): string {
@@ -226,9 +241,7 @@ export async function readPage(token: string, fileId: string): Promise<Page> {
   return {
     id: fileId,
     pageNumber: doc.pageNumber,
-    ink: doc.ink ?? [],
-    sketch: doc.sketch ?? [],
-    text: doc.text ?? '',
+    blocks: doc.blocks ?? migrateLegacy(doc),
     updatedAt: doc.updatedAt,
   }
 }
@@ -241,9 +254,7 @@ export async function savePage(
 ): Promise<string> {
   const doc: PageDoc = {
     pageNumber: page.pageNumber,
-    ink: page.ink,
-    sketch: page.sketch,
-    text: page.text,
+    blocks: page.blocks,
     updatedAt: new Date().toISOString(),
   }
   const { id } = await uploadJson(token, doc, {

@@ -1,11 +1,9 @@
 import { getStroke } from 'perfect-freehand'
 import type { Stroke } from '@/types'
 
-/** Logical page dimensions (≈ A4 ratio). Strokes are stored in these units. */
-export const PAGE_WIDTH = 1000
-export const PAGE_HEIGHT = 1414
-/** Spacing for ruled lines, in page units. */
-export const RULE_SPACING = 44
+/** Logical coordinate space for a sketch block. Scales to the block's width. */
+export const SKETCH_WIDTH = 1000
+export const SKETCH_HEIGHT = 460
 
 type FreehandOptions = Parameters<typeof getStroke>[1]
 
@@ -13,8 +11,6 @@ const TOOL_OPTIONS: Record<Stroke['tool'], FreehandOptions> = {
   pen: { thinning: 0.6, smoothing: 0.5, streamline: 0.5, simulatePressure: true },
   // Highlighter: flatter, less pressure variation, drawn semi-transparent.
   highlighter: { thinning: 0.1, smoothing: 0.4, streamline: 0.4, simulatePressure: false },
-  // Free sketch: expressive, pressure-aware.
-  sketch: { thinning: 0.7, smoothing: 0.55, streamline: 0.45, simulatePressure: true },
 }
 
 /** Convert a freehand outline (list of points) into an SVG path `d` string. */

@@ -9,10 +9,9 @@ import {
   savePage,
   updateNotebook,
 } from '@/services/drive'
-import { recognizeHandwriting } from '@/services/recognize'
-import type { NotebookMeta, Page, Stroke } from '@/types'
-import { PageCanvas, type ToolKind } from '@/components/PageCanvas'
-import { Toolbox } from '@/components/Toolbox'
+import type { Block, NotebookMeta, Page, Stroke } from '@/types'
+import { TextBlock } from '@/components/TextBlock'
+import { SketchBlock } from '@/components/SketchBlock'
 import { PageNavigator } from '@/components/PageNavigator'
 
 interface PageRef {
@@ -22,12 +21,24 @@ interface PageRef {
 
 const AUTOSAVE_MS = 1200
 
+function newId(): string {
+  return crypto.randomUUID()
+}
+
+function emptyTextBlock(): Block {
+  return { kind: 'text', id: newId(), text: '' }
+}
+
 function emptyPage(pageNumber: number): Page {
-  return { id: '', pageNumber, ink: [], sketch: [], text: '', updatedAt: '' }
+  return { id: '', pageNumber, blocks: [emptyTextBlock()], updatedAt: '' }
+}
+
+function isBlockEmpty(b: Block): boolean {
+  return b.kind === 'text' ? b.text.trim() === '' : b.strokes.length === 0
 }
 
 function isBlankUnsaved(p: Page): boolean {
-  return !p.id && p.ink.length === 0 && p.sketch.length === 0 && p.text.trim() === ''
+  return !p.id && p.blocks.every(isBlockEmpty)
 }
 
 export function NotebookView() {
@@ -43,15 +54,8 @@ export function NotebookView() {
   const [page, setPage] = useState<Page | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [showText, setShowText] = useState(false)
-  const [recognizing, setRecognizing] = useState(false)
 
-  const [tool, setTool] = useState<ToolKind>('pen')
-  const [color, setColor] = useState('#1f2333')
-  const [size, setSize] = useState(8)
-
-  // Mutable mirrors so callbacks always see the latest values without stale
-  // closures. `pageRef` mirrors `page`; `cache` keeps loaded/edited pages.
+  // Mutable mirrors so callbacks always see the latest values.
   const pageRef = useRef<Page | null>(null)
   const cache = useRef<Map<number, Page>>(new Map())
   const saveTimer = useRef<number | null>(null)
@@ -76,19 +80,17 @@ export function NotebookView() {
     async (p: Page) => {
       if (isBlankUnsaved(p)) return
       setSaving(true)
-      const newId = await guard(() => savePage(token, id, p))
+      const newFileId = await guard(() => savePage(token, id, p))
       setSaving(false)
-      if (!newId) return
+      if (!newFileId) return
 
       if (!p.id) {
-        // Page was just persisted for the first time: assign its id, mark the
-        // ref, and refresh the notebook's page count.
-        const updated = { ...p, id: newId }
+        const updated = { ...p, id: newFileId }
         cache.current.set(p.pageNumber, updated)
         if (pageRef.current?.pageNumber === p.pageNumber) applyPage(updated)
 
         const nextRefs = refsRef.current.map((r) =>
-          r.pageNumber === p.pageNumber ? { ...r, id: newId } : r,
+          r.pageNumber === p.pageNumber ? { ...r, id: newFileId } : r,
         )
         setRefsBoth(nextRefs)
 
@@ -124,14 +126,14 @@ export function NotebookView() {
     if (toSave) await doSave(toSave)
   }, [doSave])
 
-  // ---- Mutations (with snapshot-based undo) --------------------------------
+  // ---- Mutations -----------------------------------------------------------
 
-  const mutate = useCallback(
+  // Apply a change and schedule a save, without recording an undo snapshot.
+  // Used for text edits — the textarea has its own native undo.
+  const applySilent = useCallback(
     (producer: (p: Page) => Page) => {
       const prev = pageRef.current
       if (!prev) return
-      undoStack.current.push(prev)
-      setUndoCount(undoStack.current.length)
       const next = producer(prev)
       cache.current.set(next.pageNumber, next)
       applyPage(next)
@@ -140,26 +142,17 @@ export function NotebookView() {
     [applyPage, scheduleSave],
   )
 
-  const handleAddStroke = useCallback(
-    (stroke: Stroke) => {
-      mutate((p) =>
-        stroke.tool === 'sketch'
-          ? { ...p, sketch: [...p.sketch, stroke] }
-          : { ...p, ink: [...p.ink, stroke] },
-      )
+  // Apply a change, recording an undo snapshot. Used for sketch and structural
+  // edits (add/remove block, draw, erase).
+  const mutate = useCallback(
+    (producer: (p: Page) => Page) => {
+      const prev = pageRef.current
+      if (!prev) return
+      undoStack.current.push(prev)
+      setUndoCount(undoStack.current.length)
+      applySilent(producer)
     },
-    [mutate],
-  )
-
-  const handleEraseStroke = useCallback(
-    (stroke: Stroke) => {
-      mutate((p) => ({
-        ...p,
-        ink: p.ink.filter((s) => s !== stroke),
-        sketch: p.sketch.filter((s) => s !== stroke),
-      }))
-    },
-    [mutate],
+    [applySilent],
   )
 
   const handleUndo = useCallback(() => {
@@ -171,25 +164,48 @@ export function NotebookView() {
     scheduleSave(prev)
   }, [applyPage, scheduleSave])
 
-  const handleTextChange = useCallback(
-    (text: string) => {
-      mutate((p) => ({ ...p, text }))
+  const setBlockText = useCallback(
+    (blockId: string, text: string) => {
+      applySilent((p) => ({
+        ...p,
+        blocks: p.blocks.map((b) => (b.id === blockId && b.kind === 'text' ? { ...b, text } : b)),
+      }))
+    },
+    [applySilent],
+  )
+
+  const setBlockStrokes = useCallback(
+    (blockId: string, strokes: Stroke[]) => {
+      mutate((p) => ({
+        ...p,
+        blocks: p.blocks.map((b) =>
+          b.id === blockId && b.kind === 'sketch' ? { ...b, strokes } : b,
+        ),
+      }))
     },
     [mutate],
   )
 
-  const handleRecognize = useCallback(async () => {
-    const current = pageRef.current
-    if (!current || current.ink.length === 0 || recognizing) return
-    setShowText(true)
-    setRecognizing(true)
-    const recognized = await guard(() => recognizeHandwriting(token, current.ink))
-    setRecognizing(false)
-    if (recognized == null) return // error/401 already handled by guard
-    if (recognized) {
-      mutate((p) => ({ ...p, text: p.text ? `${p.text}\n${recognized}` : recognized }))
-    }
-  }, [guard, token, mutate, recognizing])
+  const addBlock = useCallback(
+    (kind: Block['kind']) => {
+      mutate((p) => {
+        const block: Block =
+          kind === 'text' ? emptyTextBlock() : { kind: 'sketch', id: newId(), strokes: [] }
+        return { ...p, blocks: [...p.blocks, block] }
+      })
+    },
+    [mutate],
+  )
+
+  const removeBlock = useCallback(
+    (blockId: string) => {
+      mutate((p) => {
+        const next = p.blocks.filter((b) => b.id !== blockId)
+        return { ...p, blocks: next.length ? next : [emptyTextBlock()] }
+      })
+    },
+    [mutate],
+  )
 
   // ---- Page loading / navigation ------------------------------------------
 
@@ -258,7 +274,6 @@ export function NotebookView() {
       await loadIndex(0, initialRefs)
       setLoading(false)
     }
-    // Legitimate on-mount fetch; state is set only after awaiting.
     void init()
     return () => {
       cancelled = true
@@ -297,65 +312,46 @@ export function NotebookView() {
           <span className={`save-state ${saving ? 'is-saving' : ''}`}>
             {saving ? 'Saving…' : 'Saved'}
           </span>
-          <button
-            className={`btn btn-ghost ${showText ? 'is-active' : ''}`}
-            onClick={() => setShowText((v) => !v)}
-          >
-            {showText ? 'Hide text' : 'Text'}
+          <button className="tool-btn" onClick={handleUndo} disabled={undoCount === 0} title="Undo">
+            ↶
           </button>
         </div>
       </header>
 
       {error && <div className="banner banner-error">{error}</div>}
 
-      <Toolbox
-        tool={tool}
-        setTool={setTool}
-        color={color}
-        setColor={setColor}
-        size={size}
-        setSize={setSize}
-        onUndo={handleUndo}
-        canUndo={undoCount > 0}
-      />
-
       <div className="editor-stage">
-        <div className="page-frame">
-          {page && (
-            <PageCanvas
-              style={meta?.style ?? 'ruled'}
-              ink={page.ink}
-              sketch={page.sketch}
-              tool={tool}
-              color={color}
-              size={size}
-              onAddStroke={handleAddStroke}
-              onEraseStroke={handleEraseStroke}
-            />
+        <div className={`page-sheet sheet-${meta?.style ?? 'ruled'}`}>
+          {page?.blocks.map((block) =>
+            block.kind === 'text' ? (
+              <TextBlock
+                key={block.id}
+                text={block.text}
+                placeholder="Write here — type, use your stylus, or dictate…"
+                onChange={(text) => setBlockText(block.id, text)}
+                onRemoveEmpty={
+                  page.blocks.length > 1 ? () => removeBlock(block.id) : undefined
+                }
+              />
+            ) : (
+              <SketchBlock
+                key={block.id}
+                strokes={block.strokes}
+                onChange={(strokes) => setBlockStrokes(block.id, strokes)}
+                onRemove={() => removeBlock(block.id)}
+              />
+            ),
           )}
-        </div>
 
-        {showText && (
-          <aside className="text-panel">
-            <div className="text-panel-head">
-              <h2 className="text-panel-title">Text</h2>
-              <button
-                className="btn btn-primary text-recognize"
-                onClick={() => void handleRecognize()}
-                disabled={recognizing || !page || page.ink.length === 0}
-                title="Transcribe the handwriting on this page into text"
-              >
-                {recognizing ? 'Recognizing…' : '✨ Recognize'}
-              </button>
-            </div>
-            <textarea
-              className="text-area"
-              placeholder="Recognized or typed text for this page…"
-              value={page?.text ?? ''}
-              onChange={(e) => handleTextChange(e.target.value)}
-            />
-          </aside>
-        )}
+          <div className="add-block-row">
+            <button className="add-block-btn" onClick={() => addBlock('text')}>
+              + Text
+            </button>
+            <button className="add-block-btn" onClick={() => addBlock('sketch')}>
+              + Sketch
+            </button>
+          </div>
+        </div>
       </div>
 
       <PageNavigator

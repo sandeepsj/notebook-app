@@ -34,11 +34,12 @@ Actions secret (prod).
 ## Status
 
 **Core app working.** Google sign-in (session survives refresh), Drive storage,
-a home page to create / list / rename / delete notebooks, and a full page editor:
-stylus drawing (pressure-aware, via `perfect-freehand`), pen / highlighter /
-sketch / eraser tools with colour and size, ruled & blank pages, multi-page
-navigation with autosave to Drive, undo, and handwriting → text recognition
-through the LLM proxy (Claude vision). See [docs/FEATURES.md](docs/FEATURES.md)
-for the full scope and remaining polish (per-notebook index page, richer text
-editor).
+and a home page to create / list / rename / delete notebooks. Each page is a
+**block document**: text blocks you write into with whatever your device offers
+(typing, the tablet's native stylus-handwriting, or speech-to-text — no
+app-side recognition needed) plus optional **sketch blocks** for diagrams
+(pressure-aware freehand via `perfect-freehand`, pen / eraser / colour / size).
+Multi-page navigation with autosave to Drive and undo. See
+[docs/FEATURES.md](docs/FEATURES.md) for the full scope and remaining polish
+(per-notebook index page, richer text formatting).
 </content>

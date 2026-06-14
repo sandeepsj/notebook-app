@@ -410,45 +410,11 @@
 .save-state {
   font-size: 0.8rem;
   color: var(--ink-faint);
-  min-width: 56px;
+  min-width: 52px;
   text-align: right;
 }
 .save-state.is-saving {
   color: var(--accent);
-}
-.btn-ghost.is-active {
-  background: var(--accent-soft);
-  color: var(--accent);
-}
-
-/* Toolbox */
-.toolbox {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  flex-wrap: wrap;
-  justify-content: center;
-  padding: 0.5rem 0.75rem;
-  background: var(--paper-raised);
-  border-bottom: 1px solid var(--line);
-  position: sticky;
-  top: 0;
-  z-index: 5;
-}
-.tool-group {
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-}
-.tool-group.is-disabled {
-  opacity: 0.4;
-  pointer-events: none;
-}
-.tool-sep {
-  width: 1px;
-  height: 28px;
-  background: var(--line);
-  margin: 0 0.25rem;
 }
 .tool-btn {
   width: 44px;
@@ -458,126 +424,172 @@
   display: grid;
   place-items: center;
   background: transparent;
-  transition: background 0.12s ease;
+  color: var(--ink-soft);
 }
 .tool-btn:hover:not(:disabled) {
   background: rgba(31, 35, 51, 0.06);
 }
-.tool-btn.is-active {
-  background: var(--accent-soft);
-  box-shadow: inset 0 0 0 2px var(--accent);
-}
 .tool-btn:disabled {
   opacity: 0.35;
 }
-.swatch {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  border: 2px solid rgba(255, 255, 255, 0.7);
-  box-shadow: 0 0 0 1px var(--line-strong);
-  transition: transform 0.1s ease;
+
+/* Document sheet */
+.editor-stage {
+  flex: 1;
+  overflow: auto;
+  padding: clamp(0.75rem, 3vw, 2rem);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
 }
-.swatch:hover {
-  transform: scale(1.1);
+.page-sheet {
+  width: min(800px, 100%);
+  min-height: 100%;
+  background: var(--paper-raised);
+  border-radius: 8px;
+  box-shadow: var(--shadow-lg);
+  padding: clamp(1.25rem, 4vw, 2.75rem);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
-.swatch.is-active {
-  box-shadow: 0 0 0 2px var(--paper-raised), 0 0 0 4px var(--accent);
+.sheet-ruled {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 35px,
+    var(--rule-line) 35px,
+    var(--rule-line) 36px
+  );
+  background-position: 0 calc(clamp(1.25rem, 4vw, 2.75rem) + 4px);
 }
-.size-btn {
-  width: 38px;
-  height: 38px;
-  border-radius: 10px;
+
+/* Text block */
+.block-text {
+  width: 100%;
+  border: none;
+  outline: none;
+  resize: none;
+  background: transparent;
+  color: var(--ink);
+  font-size: 1.1rem;
+  line-height: 36px;
+  padding: 0;
+  overflow: hidden;
+}
+.block-text::placeholder {
+  color: var(--ink-faint);
+}
+
+/* Sketch block */
+.sketch-block {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+  margin: 0.5rem 0;
+  background: #fff;
+}
+.sketch-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.4rem 0.5rem;
+  background: var(--paper);
+  border-bottom: 1px solid var(--line);
+}
+.sketch-tools {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  flex-wrap: wrap;
+}
+.sketch-sep {
+  width: 1px;
+  height: 22px;
+  background: var(--line-strong);
+  margin: 0 0.2rem;
+}
+.mini-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  font-size: 1rem;
   display: grid;
   place-items: center;
+  background: transparent;
 }
-.size-btn:hover {
+.mini-btn:hover {
   background: rgba(31, 35, 51, 0.06);
 }
-.size-btn.is-active {
+.mini-btn.is-active {
   background: var(--accent-soft);
   box-shadow: inset 0 0 0 2px var(--accent);
 }
-.size-dot {
+.mini-remove:hover {
+  background: rgba(212, 73, 63, 0.1);
+}
+.mini-swatch {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px var(--line-strong);
+}
+.mini-swatch.is-active {
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--accent);
+}
+.mini-size {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+}
+.mini-size.is-active {
+  background: var(--accent-soft);
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+.mini-dot {
   display: block;
   border-radius: 50%;
   background: var(--ink);
 }
-
-/* Stage / page */
-.editor-stage {
-  flex: 1;
-  display: flex;
-  gap: 1rem;
-  overflow: auto;
-  padding: clamp(0.75rem, 3vw, 2rem);
-  justify-content: center;
-  align-items: flex-start;
-}
-.page-frame {
-  flex: 0 1 auto;
-  width: min(800px, 100%);
-  background: var(--paper-raised);
-  border-radius: 6px;
-  box-shadow: var(--shadow-lg);
-  overflow: hidden;
-}
-.page-canvas {
+.sketch-canvas {
   display: block;
   width: 100%;
   height: auto;
-  touch-action: none; /* let pointer events drive drawing, not scroll */
+  touch-action: none;
   cursor: crosshair;
 }
-.page-canvas.is-erasing {
+.sketch-canvas.is-erasing {
   cursor: cell;
 }
 
-/* Text panel */
-.text-panel {
-  flex: 0 0 320px;
-  max-width: 360px;
-  background: var(--paper-raised);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 1rem;
+/* Add-block controls */
+.add-block-row {
   display: flex;
-  flex-direction: column;
-  align-self: stretch;
-  max-height: 100%;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  opacity: 0.7;
+  transition: opacity 0.15s ease;
 }
-.text-panel-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 0.6rem;
+.page-sheet:hover .add-block-row {
+  opacity: 1;
 }
-.text-panel-title {
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: var(--ink-soft);
-}
-.text-recognize {
-  min-height: 36px;
-  padding: 0 0.8rem;
-  font-size: 0.85rem;
-}
-.text-area {
-  flex: 1;
-  width: 100%;
-  min-height: 240px;
-  resize: none;
-  border: 1px solid var(--line-strong);
+.add-block-btn {
+  min-height: 38px;
+  padding: 0 0.9rem;
   border-radius: 10px;
-  padding: 0.75rem;
-  font-size: 1rem;
-  line-height: 1.6;
-  outline: none;
-  background: var(--paper);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+  border: 1px dashed var(--line-strong);
+  background: transparent;
 }
-.text-area:focus {
+.add-block-btn:hover {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-soft);
+  color: var(--accent);
+  background: var(--accent-soft);
 }
 
 /* Page navigator */
@@ -619,10 +631,4 @@
 .pagenav-of {
   color: var(--ink-faint);
   font-weight: 500;
-}
-
-@media (max-width: 720px) {
-  .text-panel {
-    display: none;
-  }
 }

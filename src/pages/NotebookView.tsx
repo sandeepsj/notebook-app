@@ -13,6 +13,15 @@ import type { Block, NotebookMeta, Page, Stroke } from '@/types'
 import { TextBlock } from '@/components/TextBlock'
 import { SketchBlock } from '@/components/SketchBlock'
 import { PageNavigator } from '@/components/PageNavigator'
+import {
+  UndoIcon,
+  ChevronLeftIcon,
+  TextIcon,
+  SketchIcon,
+  ArrowUpIcon,
+  ArrowDownIcon,
+  TrashIcon,
+} from '@/components/icons'
 
 interface PageRef {
   id: string
@@ -219,6 +228,20 @@ export function NotebookView() {
     [mutate],
   )
 
+  const moveBlock = useCallback(
+    (blockId: string, dir: -1 | 1) => {
+      mutate((p) => {
+        const i = p.blocks.findIndex((b) => b.id === blockId)
+        const j = i + dir
+        if (i < 0 || j < 0 || j >= p.blocks.length) return p
+        const blocks = [...p.blocks]
+        ;[blocks[i], blocks[j]] = [blocks[j], blocks[i]]
+        return { ...p, blocks }
+      })
+    },
+    [mutate],
+  )
+
   // ---- Page loading / navigation ------------------------------------------
 
   const loadIndex = useCallback(
@@ -317,7 +340,8 @@ export function NotebookView() {
     <div className="notebook-view">
       <header className="editor-bar">
         <button className="btn btn-ghost" onClick={handleBack}>
-          ← Notebooks
+          <ChevronLeftIcon size={18} />
+          Notebooks
         </button>
         <h1 className="editor-title">{meta?.title ?? 'Notebook'}</h1>
         <div className="editor-bar-right">
@@ -325,7 +349,7 @@ export function NotebookView() {
             {saving ? 'Saving…' : 'Saved'}
           </span>
           <button className="tool-btn" onClick={handleUndo} disabled={undoCount === 0} title="Undo">
-            ↶
+            <UndoIcon />
           </button>
         </div>
       </header>
@@ -334,36 +358,67 @@ export function NotebookView() {
 
       <div className="editor-stage">
         <div className={`page-sheet sheet-${meta?.style ?? 'ruled'}`}>
-          {page?.blocks.map((block) =>
-            block.kind === 'text' ? (
-              <TextBlock
-                key={block.id}
-                text={block.text}
-                placeholder="Write here — type, use your stylus, or dictate…"
-                onChange={(text) => setBlockText(block.id, text)}
-                onRemoveEmpty={
-                  page.blocks.length > 1 ? () => removeBlock(block.id) : undefined
-                }
-              />
-            ) : (
-              <SketchBlock
-                key={block.id}
-                strokes={block.strokes}
-                width={block.width}
-                height={block.height}
-                onChange={(strokes) => setBlockStrokes(block.id, strokes)}
-                onResize={(w, h) => setBlockSize(block.id, w, h)}
-                onRemove={() => removeBlock(block.id)}
-              />
-            ),
-          )}
+          {page?.blocks.map((block, i) => (
+            <div className="block-row" key={block.id}>
+              <div className="block-controls">
+                <button
+                  className="block-ctl"
+                  onClick={() => moveBlock(block.id, -1)}
+                  disabled={i === 0}
+                  title="Move up"
+                  aria-label="Move block up"
+                >
+                  <ArrowUpIcon size={16} />
+                </button>
+                <button
+                  className="block-ctl"
+                  onClick={() => moveBlock(block.id, 1)}
+                  disabled={i === page.blocks.length - 1}
+                  title="Move down"
+                  aria-label="Move block down"
+                >
+                  <ArrowDownIcon size={16} />
+                </button>
+                <button
+                  className="block-ctl block-ctl-danger"
+                  onClick={() => removeBlock(block.id)}
+                  title="Delete block"
+                  aria-label="Delete block"
+                >
+                  <TrashIcon size={16} />
+                </button>
+              </div>
+
+              {block.kind === 'text' ? (
+                <TextBlock
+                  text={block.text}
+                  placeholder="Write here — type, use your stylus, or dictate…"
+                  onChange={(text) => setBlockText(block.id, text)}
+                  onRemoveEmpty={
+                    page.blocks.length > 1 ? () => removeBlock(block.id) : undefined
+                  }
+                />
+              ) : (
+                <SketchBlock
+                  strokes={block.strokes}
+                  width={block.width}
+                  height={block.height}
+                  onChange={(strokes) => setBlockStrokes(block.id, strokes)}
+                  onResize={(w, h) => setBlockSize(block.id, w, h)}
+                  onRemove={() => removeBlock(block.id)}
+                />
+              )}
+            </div>
+          ))}
 
           <div className="add-block-row">
             <button className="add-block-btn" onClick={() => addBlock('text')}>
-              + Text
+              <TextIcon size={16} />
+              Text
             </button>
             <button className="add-block-btn" onClick={() => addBlock('sketch')}>
-              + Sketch
+              <SketchIcon size={16} />
+              Sketch
             </button>
           </div>
         </div>

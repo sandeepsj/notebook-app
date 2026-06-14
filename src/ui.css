@@ -696,23 +696,39 @@
   color: var(--ink-faint);
 }
 
-/* Sketch block */
+/* Sketch block — soft frame that sits on the paper, toolbar reveals on use */
 .sketch-block {
-  border: 1px solid var(--line-strong);
-  border-radius: 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
   overflow: hidden;
-  margin: 0.6rem 0;
+  margin: 0.7rem 0;
   background: #fff;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 1px 2px rgba(74, 58, 40, 0.06);
+  transition: box-shadow 0.16s ease, border-color 0.16s ease;
+}
+.sketch-block.is-active,
+.sketch-block:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--line-strong);
 }
 .sketch-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
+  max-height: 0;
+  padding: 0 0.5rem;
+  opacity: 0;
+  overflow: hidden;
+  border-bottom: 1px solid transparent;
+  transition: max-height 0.18s ease, opacity 0.18s ease, padding 0.18s ease;
+}
+.sketch-block.is-active .sketch-bar,
+.sketch-block:hover .sketch-bar {
+  max-height: 140px;
   padding: 0.4rem 0.5rem;
-  background: var(--desk);
-  border-bottom: 1px solid var(--line);
+  opacity: 1;
+  border-bottom-color: var(--line);
 }
 .sketch-tools {
   display: flex;
@@ -730,10 +746,10 @@
   width: 34px;
   height: 34px;
   border-radius: 9px;
-  font-size: 1rem;
   display: grid;
   place-items: center;
   background: transparent;
+  color: var(--ink-soft);
 }
 .mini-btn:hover {
   background: rgba(74, 58, 40, 0.07);
@@ -741,9 +757,14 @@
 .mini-btn.is-active {
   background: var(--accent-soft);
   box-shadow: inset 0 0 0 2px var(--accent);
+  color: var(--accent);
+}
+.mini-remove {
+  color: var(--ink-faint);
 }
 .mini-remove:hover {
   background: rgba(192, 57, 43, 0.1);
+  color: var(--danger);
 }
 .mini-swatch {
   width: 24px;
@@ -753,6 +774,35 @@
 }
 .mini-swatch.is-active {
   box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--accent);
+}
+/* custom colour picker disguised as a swatch with a rainbow ring */
+.mini-color {
+  position: relative;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+.mini-color::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, #ef4444, #f59e0b, #10b981, #3b82f6, #8b5cf6, #ef4444);
+  z-index: -1;
+}
+.mini-color.is-active {
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--accent);
+}
+.mini-color input[type='color'] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  border: none;
+  padding: 0;
+  cursor: pointer;
 }
 .mini-size {
   width: 30px;
@@ -811,6 +861,50 @@
   );
 }
 
+/* Block row + reorder/delete controls (sit in the left margin gutter) */
+.block-row {
+  position: relative;
+}
+.block-controls {
+  position: absolute;
+  top: 0;
+  left: -48px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  opacity: 0.32;
+  transition: opacity 0.14s ease;
+}
+.block-row:hover .block-controls,
+.block-row:focus-within .block-controls {
+  opacity: 1;
+}
+.block-ctl {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  color: var(--ink-faint);
+  background: var(--paper);
+  box-shadow: var(--shadow-sm);
+}
+.block-ctl:hover:not(:disabled) {
+  color: var(--accent);
+}
+.block-ctl:disabled {
+  opacity: 0.35;
+}
+.block-ctl-danger:hover:not(:disabled) {
+  color: var(--danger);
+}
+@media (max-width: 560px) {
+  .block-controls {
+    left: -42px;
+    gap: 2px;
+  }
+}
+
 /* Add-block controls */
 .add-block-row {
   display: flex;
@@ -823,8 +917,11 @@
   opacity: 1;
 }
 .add-block-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
   min-height: 38px;
-  padding: 0 0.9rem;
+  padding: 0 0.95rem;
   border-radius: 999px;
   font-size: 0.85rem;
   font-weight: 600;

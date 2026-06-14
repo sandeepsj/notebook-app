@@ -1,11 +1,13 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { Stroke } from '@/types'
+import { SKETCH_WIDTH, SKETCH_HEIGHT, strokePath, strokeOpacity } from '@/lib/freehand'
 import {
-  SKETCH_WIDTH,
-  SKETCH_HEIGHT,
-  strokePath,
-  strokeOpacity,
-} from '@/lib/freehand'
+  PenIcon,
+  PencilIcon,
+  HighlighterIcon,
+  EraserIcon,
+  TrashIcon,
+} from '@/components/icons'
 
 interface Props {
   strokes: Stroke[]
@@ -18,16 +20,15 @@ interface Props {
 
 type Tool = 'pen' | 'pencil' | 'highlighter' | 'eraser'
 
-const TOOLS: { kind: Tool; icon: string; label: string }[] = [
-  { kind: 'pen', icon: '✒️', label: 'Pen' },
-  { kind: 'pencil', icon: '✏️', label: 'Pencil' },
-  { kind: 'highlighter', icon: '🖍️', label: 'Highlighter' },
-  { kind: 'eraser', icon: '🧽', label: 'Eraser' },
+const TOOLS: { kind: Tool; Icon: typeof PenIcon; label: string }[] = [
+  { kind: 'pen', Icon: PenIcon, label: 'Pen' },
+  { kind: 'pencil', Icon: PencilIcon, label: 'Pencil' },
+  { kind: 'highlighter', Icon: HighlighterIcon, label: 'Highlighter' },
+  { kind: 'eraser', Icon: EraserIcon, label: 'Eraser' },
 ]
 
 const COLORS = ['#1f2333', '#2563eb', '#d4493f', '#15803d', '#e0a73f']
 const SIZES = [4, 8, 16, 26]
-const ERASE_RADIUS = 16
 const DEFAULT_HEIGHT = 300
 const MIN_W = 240
 const MIN_H = 160
@@ -50,9 +51,23 @@ export function SketchBlock({ strokes, width, height, onChange, onResize, onRemo
   const [color, setColor] = useState(COLORS[0])
   const [size, setSize] = useState(SIZES[1])
   const [live, setLive] = useState<Stroke | null>(null)
+  const [active, setActive] = useState(false)
   const [dims, setDims] = useState<{ w?: number; h: number }>({ w: width, h: height ?? DEFAULT_HEIGHT })
   const drawing = useRef(false)
   const resizing = useRef(false)
+
+  // Keep the toolbar revealed after a tap (touch has no hover); collapse when
+  // the user interacts elsewhere.
+  useEffect(() => {
+    if (!active) return
+    const onDoc = (e: PointerEvent) => {
+      if (blockRef.current && !blockRef.current.contains(e.target as Node)) setActive(false)
+    }
+    document.addEventListener('pointerdown', onDoc)
+    return () => document.removeEventListener('pointerdown', onDoc)
+  }, [active])
+
+  const eraseRadius = size + 8
 
   const toPoint = (e: React.PointerEvent): [number, number, number] => {
     const rect = svgRef.current!.getBoundingClientRect()
@@ -62,7 +77,7 @@ export function SketchBlock({ strokes, width, height, onChange, onResize, onRemo
   }
 
   const eraseAt = (x: number, y: number) => {
-    const r2 = ERASE_RADIUS * ERASE_RADIUS
+    const r2 = eraseRadius * eraseRadius
     const survivors = strokes.filter((s) => !s.points.some((p) => dist2(p[0], p[1], x, y) <= r2))
     if (survivors.length !== strokes.length) onChange(survivors)
   }
@@ -70,6 +85,7 @@ export function SketchBlock({ strokes, width, height, onChange, onResize, onRemo
   const handleDown = (e: React.PointerEvent) => {
     if (e.button !== 0 && e.pointerType === 'mouse') return
     e.preventDefault()
+    setActive(true)
     svgRef.current?.setPointerCapture(e.pointerId)
     drawing.current = true
     const pt = toPoint(e)
@@ -113,6 +129,7 @@ export function SketchBlock({ strokes, width, height, onChange, onResize, onRemo
     e.stopPropagation()
     ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
     resizing.current = true
+    setActive(true)
   }
   const resizeUp = (e: React.PointerEvent) => {
     if (!resizing.current) return
@@ -125,7 +142,7 @@ export function SketchBlock({ strokes, width, height, onChange, onResize, onRemo
 
   return (
     <div
-      className="sketch-block"
+      className={`sketch-block ${active ? 'is-active' : ''}`}
       ref={blockRef}
       style={{ width: dims.w ? `${dims.w}px` : '100%' }}
     >
@@ -139,7 +156,7 @@ export function SketchBlock({ strokes, width, height, onChange, onResize, onRemo
               title={t.label}
               aria-pressed={tool === t.kind}
             >
-              {t.icon}
+              <t.Icon />
             </button>
           ))}
           <span className="sketch-sep" />
@@ -155,20 +172,34 @@ export function SketchBlock({ strokes, width, height, onChange, onResize, onRemo
               aria-label={`Colour ${c}`}
             />
           ))}
+          <label
+            className={`mini-color ${!COLORS.includes(color) && drawingTool ? 'is-active' : ''}`}
+            title="Custom colour"
+            style={{ background: color }}
+          >
+            <input
+              type="color"
+              value={color}
+              onChange={(e) => {
+                setColor(e.target.value)
+                if (tool === 'eraser') setTool('pen')
+              }}
+            />
+          </label>
           <span className="sketch-sep" />
           {SIZES.map((s) => (
             <button
               key={s}
               className={`mini-size ${size === s ? 'is-active' : ''}`}
               onClick={() => setSize(s)}
-              aria-label={`Size ${s}`}
+              aria-label={`${tool === 'eraser' ? 'Eraser' : 'Stroke'} size ${s}`}
             >
               <span className="mini-dot" style={{ width: s, height: s }} />
             </button>
           ))}
         </div>
         <button className="mini-btn mini-remove" onClick={onRemove} title="Delete sketch">
-          🗑
+          <TrashIcon size={18} />
         </button>
       </div>
 

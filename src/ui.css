@@ -175,7 +175,8 @@
   border-radius: 4px 12px 12px 4px;
   position: relative;
   overflow: hidden;
-  background: var(--accent);
+  padding: 0; /* it's a <button> — kill default padding that leaked the bg as a border */
+  background: var(--desk-deep);
   box-shadow: var(--shadow-book);
   transition: transform 0.16s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.16s ease;
 }

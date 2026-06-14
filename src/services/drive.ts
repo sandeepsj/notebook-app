@@ -217,6 +217,21 @@ export async function uploadCover(
   return created.id
 }
 
+/** Delete a Drive file by id (used for replacing/removing covers). */
+export async function deleteFile(token: string, fileId: string): Promise<void> {
+  await driveFetch(token, `${DRIVE_API}/files/${fileId}`, { method: 'DELETE' })
+}
+
+/** Clear a notebook's cover: forget the id in appProperties and delete the file. */
+export async function removeCover(
+  token: string,
+  notebookId: string,
+  coverId: string,
+): Promise<void> {
+  await updateNotebook(token, notebookId, { coverId: '' })
+  await deleteFile(token, coverId).catch(() => {})
+}
+
 /**
  * Fetch a cover image and return an object URL for use in <img src>. The caller
  * is responsible for revoking it. Returns null if it can't be loaded.

@@ -5,10 +5,11 @@ import { fetchCoverUrl } from '@/services/drive'
 interface Props {
   coverId: string
   alt: string
+  className?: string
 }
 
 /** Loads a notebook cover image from Drive and renders it as the book cover. */
-export function CoverImage({ coverId, alt }: Props) {
+export function CoverImage({ coverId, alt, className = 'book-cover-img' }: Props) {
   const { auth } = useAuth()
   const token = auth?.accessToken
   const [url, setUrl] = useState<string | null>(null)
@@ -32,5 +33,5 @@ export function CoverImage({ coverId, alt }: Props) {
   }, [token, coverId])
 
   if (!url) return <span className="book-cover-loading" aria-hidden="true" />
-  return <img className="book-cover-img" src={url} alt={alt} />
+  return <img className={className} src={url} alt={alt} />
 }

@@ -186,6 +186,18 @@ export function NotebookView() {
     [mutate],
   )
 
+  const setBlockSize = useCallback(
+    (blockId: string, width: number, height: number) => {
+      applySilent((p) => ({
+        ...p,
+        blocks: p.blocks.map((b) =>
+          b.id === blockId && b.kind === 'sketch' ? { ...b, width, height } : b,
+        ),
+      }))
+    },
+    [applySilent],
+  )
+
   const addBlock = useCallback(
     (kind: Block['kind']) => {
       mutate((p) => {
@@ -337,7 +349,10 @@ export function NotebookView() {
               <SketchBlock
                 key={block.id}
                 strokes={block.strokes}
+                width={block.width}
+                height={block.height}
                 onChange={(strokes) => setBlockStrokes(block.id, strokes)}
+                onResize={(w, h) => setBlockSize(block.id, w, h)}
                 onRemove={() => removeBlock(block.id)}
               />
             ),

@@ -5,7 +5,7 @@ import { CoverImage } from '@/components/CoverImage'
 interface Props {
   notebook: NotebookMeta
   onOpen: () => void
-  onRename: (title: string) => void
+  onEdit: () => void
   onDelete: () => void
 }
 
@@ -24,10 +24,8 @@ function formatDate(iso: string): string {
   return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
-export function NotebookCard({ notebook, onOpen, onRename, onDelete }: Props) {
+export function NotebookCard({ notebook, onOpen, onEdit, onDelete }: Props) {
   const [menuOpen, setMenuOpen] = useState(false)
-  const [editing, setEditing] = useState(false)
-  const [draft, setDraft] = useState(notebook.title)
   const menuRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -38,13 +36,6 @@ export function NotebookCard({ notebook, onOpen, onRename, onDelete }: Props) {
     document.addEventListener('mousedown', onDoc)
     return () => document.removeEventListener('mousedown', onDoc)
   }, [menuOpen])
-
-  const commitRename = () => {
-    const title = draft.trim()
-    if (title && title !== notebook.title) onRename(title)
-    else setDraft(notebook.title)
-    setEditing(false)
-  }
 
   return (
     <div className="book">
@@ -61,26 +52,9 @@ export function NotebookCard({ notebook, onOpen, onRename, onDelete }: Props) {
       </button>
 
       <div className="book-body">
-        {editing ? (
-          <input
-            className="book-title-input"
-            value={draft}
-            autoFocus
-            onChange={(e) => setDraft(e.target.value)}
-            onBlur={commitRename}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') commitRename()
-              if (e.key === 'Escape') {
-                setDraft(notebook.title)
-                setEditing(false)
-              }
-            }}
-          />
-        ) : (
-          <button className="book-title" onClick={onOpen}>
-            {notebook.title}
-          </button>
-        )}
+        <button className="book-title" onClick={onOpen}>
+          {notebook.title}
+        </button>
         <div className="book-meta">
           <span>
             {notebook.pageCount} {notebook.pageCount === 1 ? 'page' : 'pages'}
@@ -108,10 +82,10 @@ export function NotebookCard({ notebook, onOpen, onRename, onDelete }: Props) {
               className="menu-item"
               onClick={() => {
                 setMenuOpen(false)
-                setEditing(true)
+                onEdit()
               }}
             >
-              Rename
+              Edit name &amp; cover
             </button>
             <button
               className="menu-item menu-item-danger"

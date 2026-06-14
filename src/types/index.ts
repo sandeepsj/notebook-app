@@ -23,7 +23,7 @@ export interface Stroke {
   points: [number, number, number][]
   color: string
   size: number
-  tool: 'pen' | 'highlighter'
+  tool: 'pen' | 'pencil' | 'highlighter'
 }
 
 /**
@@ -34,7 +34,7 @@ export interface Stroke {
  */
 export type Block =
   | { kind: 'text'; id: string; text: string }
-  | { kind: 'sketch'; id: string; strokes: Stroke[] }
+  | { kind: 'sketch'; id: string; strokes: Stroke[]; width?: number; height?: number }
 
 /** One page of a notebook. Persisted as a single JSON file in Drive. */
 export interface Page {

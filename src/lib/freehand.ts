@@ -9,7 +9,9 @@ type FreehandOptions = Parameters<typeof getStroke>[1]
 
 const TOOL_OPTIONS: Record<Stroke['tool'], FreehandOptions> = {
   pen: { thinning: 0.6, smoothing: 0.5, streamline: 0.5, simulatePressure: true },
-  // Highlighter: flatter, less pressure variation, drawn semi-transparent.
+  // Pencil: thin, fairly constant width, drawn slightly translucent for graphite.
+  pencil: { thinning: 0.3, smoothing: 0.55, streamline: 0.6, simulatePressure: true },
+  // Highlighter: flat, even width, translucent so text shows through.
   highlighter: { thinning: 0.1, smoothing: 0.4, streamline: 0.4, simulatePressure: false },
 }
 
@@ -37,7 +39,9 @@ export function strokePath(stroke: Stroke): string {
   return outlineToPath(outline)
 }
 
-/** Opacity for a given tool (highlighter is translucent). */
+/** Opacity for a given tool (highlighter is translucent; pencil a touch soft). */
 export function strokeOpacity(tool: Stroke['tool']): number {
-  return tool === 'highlighter' ? 0.4 : 1
+  if (tool === 'highlighter') return 0.4
+  if (tool === 'pencil') return 0.85
+  return 1
 }

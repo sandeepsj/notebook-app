@@ -519,16 +519,22 @@
 }
 .cover-preview-wrap {
   position: relative;
-  width: 130px;
+  width: 132px;
+  aspect-ratio: 3 / 4.1;
   margin: 0 auto;
+  border-radius: 4px 10px 10px 4px;
+  overflow: visible;
 }
 .cover-preview {
-  width: 130px;
-  aspect-ratio: 3 / 4.1;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
   border-radius: 4px 10px 10px 4px;
   box-shadow: var(--shadow-book);
   display: block;
+}
+.cover-preview-wrap .book-cover-loading {
+  border-radius: 4px 10px 10px 4px;
 }
 .cover-remove {
   position: absolute;
@@ -543,6 +549,26 @@
   display: grid;
   place-items: center;
   box-shadow: var(--shadow-sm);
+  z-index: 2;
+}
+.cover-change {
+  position: absolute;
+  left: 50%;
+  bottom: -12px;
+  transform: translateX(-50%);
+  padding: 0.3rem 0.8rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  background: var(--paper);
+  color: var(--ink-soft);
+  border: 1px solid var(--line-strong);
+  box-shadow: var(--shadow-sm);
+  white-space: nowrap;
+}
+.cover-change:hover {
+  color: var(--accent);
+  border-color: var(--accent);
 }
 .modal-actions {
   display: flex;
@@ -743,15 +769,45 @@
   border-radius: 50%;
   background: var(--ink);
 }
+.sketch-canvas-wrap {
+  position: relative;
+}
 .sketch-canvas {
   display: block;
   width: 100%;
-  height: auto;
   touch-action: none;
   cursor: crosshair;
 }
 .sketch-canvas.is-erasing {
   cursor: cell;
+}
+.sketch-resize {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 22px;
+  height: 22px;
+  cursor: nwse-resize;
+  touch-action: none;
+  background: linear-gradient(
+    135deg,
+    transparent 0 52%,
+    var(--line-strong) 52% 60%,
+    transparent 60% 70%,
+    var(--line-strong) 70% 78%,
+    transparent 78%
+  );
+  border-bottom-right-radius: 11px;
+}
+.sketch-resize:hover {
+  background: linear-gradient(
+    135deg,
+    transparent 0 52%,
+    var(--accent) 52% 60%,
+    transparent 60% 70%,
+    var(--accent) 70% 78%,
+    transparent 78%
+  );
 }
 
 /* Add-block controls */

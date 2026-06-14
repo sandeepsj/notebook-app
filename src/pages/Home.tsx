@@ -8,9 +8,11 @@ import {
   updateNotebook,
   deleteNotebook,
   uploadCover,
+  removeCover,
+  deleteFile,
 } from '@/services/drive'
-import type { NotebookMeta, PageStyle } from '@/types'
-import { CreateNotebookModal } from '@/components/CreateNotebookModal'
+import type { NotebookMeta } from '@/types'
+import { NotebookModal, type NotebookFormData } from '@/components/NotebookModal'
 import { NotebookCard } from '@/components/NotebookCard'
 
 function firstName(name: string): string {
@@ -26,6 +28,7 @@ export function Home() {
   const [notebooks, setNotebooks] = useState<NotebookMeta[]>([])
   const [loading, setLoading] = useState(true)
   const [creating, setCreating] = useState(false)
+  const [editing, setEditing] = useState<NotebookMeta | null>(null)
 
   // Fetch the notebook list. Sets state only after awaiting (no synchronous
   // setState in the mount effect). `loading` starts true, so the initial load
@@ -50,18 +53,36 @@ export function Home() {
     void load()
   }
 
-  const handleCreate = async (title: string, style: PageStyle, cover: File | null) => {
-    const created = await guard(() => createNotebook(token, title, style))
-    if (created && cover) {
-      await guard(() => uploadCover(token, created.id, cover))
+  const handleCreate = async (data: NotebookFormData) => {
+    const created = await guard(() => createNotebook(token, data.title, data.style))
+    if (created && data.cover) {
+      await guard(() => uploadCover(token, created.id, data.cover!))
     }
     setCreating(false)
     if (created) navigate(`/notebook/${created.id}`)
   }
 
-  const handleRename = async (id: string, title: string) => {
-    await guard(() => updateNotebook(token, id, { title }))
-    setNotebooks((prev) => prev.map((n) => (n.id === id ? { ...n, title } : n)))
+  const handleEdit = async (nb: NotebookMeta, data: NotebookFormData) => {
+    setEditing(null)
+    if (data.title !== nb.title || data.style !== nb.style) {
+      await guard(() => updateNotebook(token, nb.id, { title: data.title, style: data.style }))
+    }
+    let coverId = nb.coverId
+    if (data.cover) {
+      const newId = await guard(() => uploadCover(token, nb.id, data.cover!))
+      if (newId) {
+        if (nb.coverId) await guard(() => deleteFile(token, nb.coverId!))
+        coverId = newId
+      }
+    } else if (data.removeCover && nb.coverId) {
+      await guard(() => removeCover(token, nb.id, nb.coverId!))
+      coverId = undefined
+    }
+    setNotebooks((prev) =>
+      prev.map((n) =>
+        n.id === nb.id ? { ...n, title: data.title, style: data.style, coverId } : n,
+      ),
+    )
   }
 
   const handleDelete = async (id: string) => {
@@ -129,7 +150,7 @@ export function Home() {
                 key={nb.id}
                 notebook={nb}
                 onOpen={() => navigate(`/notebook/${nb.id}`)}
-                onRename={(title) => handleRename(nb.id, title)}
+                onEdit={() => setEditing(nb)}
                 onDelete={() => handleDelete(nb.id)}
               />
             ))}
@@ -138,9 +159,15 @@ export function Home() {
       </main>
 
       {creating && (
-        <CreateNotebookModal
-          onCreate={handleCreate}
-          onCancel={() => setCreating(false)}
+        <NotebookModal mode="create" onSubmit={handleCreate} onCancel={() => setCreating(false)} />
+      )}
+
+      {editing && (
+        <NotebookModal
+          mode="edit"
+          initial={{ title: editing.title, style: editing.style, coverId: editing.coverId }}
+          onSubmit={(data) => handleEdit(editing, data)}
+          onCancel={() => setEditing(null)}
         />
       )}
     </div>

@@ -1,11 +1,21 @@
 import { useEffect, useRef, useState } from 'react'
 import type { NotebookMeta } from '@/types'
+import { CoverImage } from '@/components/CoverImage'
 
 interface Props {
   notebook: NotebookMeta
   onOpen: () => void
   onRename: (title: string) => void
   onDelete: () => void
+}
+
+const TONES = ['', 'tone-honey', 'tone-sage', 'tone-indigo']
+
+/** Pick a stable default-cover tone from the title. */
+function toneFor(title: string): string {
+  let h = 0
+  for (let i = 0; i < title.length; i++) h = (h + title.charCodeAt(i)) % TONES.length
+  return TONES[h]
 }
 
 function formatDate(iso: string): string {
@@ -37,19 +47,23 @@ export function NotebookCard({ notebook, onOpen, onRename, onDelete }: Props) {
   }
 
   return (
-    <div className="card">
-      <button
-        className={`card-cover card-cover-${notebook.style}`}
-        onClick={onOpen}
-        aria-label={`Open ${notebook.title}`}
-      >
-        <span className="card-cover-spine" aria-hidden="true" />
+    <div className="book">
+      <button className="book-cover" onClick={onOpen} aria-label={`Open ${notebook.title}`}>
+        {notebook.coverId ? (
+          <CoverImage coverId={notebook.coverId} alt={notebook.title} />
+        ) : (
+          <div className={`book-cover-default ${toneFor(notebook.title)}`}>
+            <div className="book-label">
+              <span className="book-label-title">{notebook.title}</span>
+            </div>
+          </div>
+        )}
       </button>
 
-      <div className="card-body">
+      <div className="book-body">
         {editing ? (
           <input
-            className="card-title-input"
+            className="book-title-input"
             value={draft}
             autoFocus
             onChange={(e) => setDraft(e.target.value)}
@@ -63,26 +77,26 @@ export function NotebookCard({ notebook, onOpen, onRename, onDelete }: Props) {
             }}
           />
         ) : (
-          <button className="card-title" onClick={onOpen}>
+          <button className="book-title" onClick={onOpen}>
             {notebook.title}
           </button>
         )}
-        <div className="card-meta">
-          <span>{notebook.pageCount} {notebook.pageCount === 1 ? 'page' : 'pages'}</span>
-          <span className="card-dot">·</span>
-          <span>{notebook.style === 'ruled' ? 'Ruled' : 'Blank'}</span>
+        <div className="book-meta">
+          <span>
+            {notebook.pageCount} {notebook.pageCount === 1 ? 'page' : 'pages'}
+          </span>
           {formatDate(notebook.updatedAt) && (
             <>
-              <span className="card-dot">·</span>
+              <span className="book-dot">·</span>
               <span>{formatDate(notebook.updatedAt)}</span>
             </>
           )}
         </div>
       </div>
 
-      <div className="card-menu" ref={menuRef}>
+      <div className="book-menu" ref={menuRef}>
         <button
-          className="card-menu-btn"
+          className="book-menu-btn"
           onClick={() => setMenuOpen((v) => !v)}
           aria-label="Notebook actions"
         >

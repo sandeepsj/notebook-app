@@ -7,10 +7,15 @@ import {
   createNotebook,
   updateNotebook,
   deleteNotebook,
+  uploadCover,
 } from '@/services/drive'
 import type { NotebookMeta, PageStyle } from '@/types'
 import { CreateNotebookModal } from '@/components/CreateNotebookModal'
 import { NotebookCard } from '@/components/NotebookCard'
+
+function firstName(name: string): string {
+  return name?.trim().split(/\s+/)[0] || 'Your'
+}
 
 export function Home() {
   const { auth, signOut } = useAuth()
@@ -45,8 +50,11 @@ export function Home() {
     void load()
   }
 
-  const handleCreate = async (title: string, style: PageStyle) => {
+  const handleCreate = async (title: string, style: PageStyle, cover: File | null) => {
     const created = await guard(() => createNotebook(token, title, style))
+    if (created && cover) {
+      await guard(() => uploadCover(token, created.id, cover))
+    }
     setCreating(false)
     if (created) navigate(`/notebook/${created.id}`)
   }
@@ -66,7 +74,7 @@ export function Home() {
       <header className="topbar">
         <div className="brand">
           <span className="brand-mark" aria-hidden="true">
-            ✎
+            📓
           </span>
           <span className="brand-name">Notebook</span>
         </div>
@@ -87,6 +95,11 @@ export function Home() {
       </header>
 
       <main className="home-main">
+        <div className="home-head">
+          <span className="home-sub">{firstName(auth!.user.name)}’s shelf</span>
+          <h1 className="home-title">Your notebooks</h1>
+        </div>
+
         {error && (
           <div className="banner banner-error">
             {error}
@@ -103,14 +116,14 @@ export function Home() {
             <div className="empty-art" aria-hidden="true">
               📓
             </div>
-            <h2 className="empty-title">No notebooks yet</h2>
+            <h2 className="empty-title">Your shelf is empty</h2>
             <p className="empty-sub">Create your first notebook to start writing.</p>
             <button className="btn btn-primary" onClick={() => setCreating(true)}>
               + New notebook
             </button>
           </div>
         ) : (
-          <div className="grid">
+          <div className="shelf">
             {notebooks.map((nb) => (
               <NotebookCard
                 key={nb.id}

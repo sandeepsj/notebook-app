@@ -1,31 +1,37 @@
 :root {
-  /* Palette — warm paper + deep ink */
-  --paper: #faf8f3;
-  --paper-raised: #ffffff;
-  --ink: #1f2333;
-  --ink-soft: #4a4f63;
-  --ink-faint: #8b8fa3;
-  --line: #e7e3d8;
-  --line-strong: #d8d3c4;
-  --accent: #4f46e5;
-  --accent-soft: #eef0ff;
-  --danger: #d4493f;
-  --rule-line: #cfe0f0;
+  /* Palette — cozy stationery: warm desk, white ruled paper, clay accent */
+  --desk: #f6efe2;
+  --desk-deep: #efe5d3;
+  --paper: #fffdf8;
+  --ink: #2b2722;
+  --ink-soft: #6b6258;
+  --ink-faint: #a89e8e;
+  --line: #eae0cf;
+  --line-strong: #ddd1ba;
+  --accent: #c2502f;
+  --accent-deep: #a8442a;
+  --accent-soft: #f7e7df;
+  --honey: #e0a73f;
+  --rule-blue: #aac6e4;
+  --margin-red: #e6a99f;
+  --danger: #c0392b;
 
-  --shadow-sm: 0 1px 2px rgba(31, 35, 51, 0.06), 0 1px 3px rgba(31, 35, 51, 0.08);
-  --shadow-md: 0 4px 12px rgba(31, 35, 51, 0.1), 0 2px 4px rgba(31, 35, 51, 0.06);
-  --shadow-lg: 0 12px 32px rgba(31, 35, 51, 0.16);
+  --shadow-sm: 0 1px 2px rgba(74, 58, 40, 0.08), 0 1px 3px rgba(74, 58, 40, 0.06);
+  --shadow-md: 0 6px 18px rgba(74, 58, 40, 0.12), 0 2px 5px rgba(74, 58, 40, 0.08);
+  --shadow-lg: 0 18px 40px rgba(74, 58, 40, 0.2);
+  --shadow-book: 0 14px 28px rgba(74, 58, 40, 0.22), 0 4px 8px rgba(74, 58, 40, 0.12);
 
   --radius: 14px;
   --radius-lg: 22px;
 
-  --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Fraunces', Georgia, 'Times New Roman', serif;
+  --font-body: 'Hanken Grotesk', system-ui, -apple-system, sans-serif;
   --font-hand: 'Caveat', 'Segoe Script', cursive;
 
   color-scheme: light;
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
   color: var(--ink);
-  background: var(--paper);
+  background: var(--desk);
 }
 
 * {
@@ -40,10 +46,12 @@ body,
 }
 
 body {
-  background: var(--paper);
+  /* Warm desk with a faint paper grain */
+  background-color: var(--desk);
+  background-image: radial-gradient(rgba(120, 95, 60, 0.05) 1px, transparent 1px);
+  background-size: 22px 22px;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  /* Stylus/touch: avoid accidental scroll/zoom on writing surfaces */
   overscroll-behavior: none;
 }
 
@@ -67,19 +75,20 @@ p {
   margin: 0;
 }
 
-/* Large, comfortable touch targets for tablet use */
+/* Buttons — generous touch targets for tablet */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
   min-height: 46px;
-  padding: 0 1.15rem;
-  border-radius: var(--radius);
+  padding: 0 1.25rem;
+  border-radius: 999px;
+  font-family: var(--font-body);
   font-size: 0.95rem;
   font-weight: 600;
   white-space: nowrap;
-  transition: transform 0.08s ease, background 0.15s ease, box-shadow 0.15s ease;
+  transition: transform 0.08s ease, background 0.15s ease, box-shadow 0.15s ease, color 0.15s ease;
   user-select: none;
 }
 .btn:active {
@@ -95,19 +104,19 @@ p {
   box-shadow: var(--shadow-sm);
 }
 .btn-primary:hover:not(:disabled) {
-  background: #4338ca;
+  background: var(--accent-deep);
 }
 .btn-ghost {
   background: transparent;
   color: var(--ink-soft);
 }
-.btn-ghost:hover {
-  background: rgba(31, 35, 51, 0.05);
+.btn-ghost:hover:not(:disabled) {
+  background: rgba(74, 58, 40, 0.07);
 }
 .btn-danger {
   background: transparent;
   color: var(--danger);
 }
-.btn-danger:hover {
-  background: rgba(212, 73, 63, 0.08);
+.btn-danger:hover:not(:disabled) {
+  background: rgba(192, 57, 43, 0.08);
 }

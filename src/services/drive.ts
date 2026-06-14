@@ -117,6 +117,7 @@ function toMeta(f: DriveFolder): NotebookMeta {
     pageCount: Number(p.pageCount ?? '0') || 0,
     createdAt: p.createdAt || f.modifiedTime,
     updatedAt: p.updatedAt || f.modifiedTime,
+    coverId: p.coverId || undefined,
   }
 }
 
@@ -167,12 +168,13 @@ export async function createNotebook(
 export async function updateNotebook(
   token: string,
   id: string,
-  patch: Partial<Pick<NotebookMeta, 'title' | 'style' | 'pageCount'>>,
+  patch: Partial<Pick<NotebookMeta, 'title' | 'style' | 'pageCount' | 'coverId'>>,
 ): Promise<void> {
   const appProperties: Record<string, string> = { updatedAt: new Date().toISOString() }
   if (patch.title !== undefined) appProperties.title = clip(patch.title)
   if (patch.style !== undefined) appProperties.style = patch.style
   if (patch.pageCount !== undefined) appProperties.pageCount = String(patch.pageCount)
+  if (patch.coverId !== undefined) appProperties.coverId = patch.coverId
 
   const body: Record<string, unknown> = { appProperties }
   if (patch.title !== undefined) body.name = clip(patch.title) || 'Untitled'
@@ -186,6 +188,47 @@ export async function updateNotebook(
 
 export async function deleteNotebook(token: string, id: string): Promise<void> {
   await driveFetch(token, `${DRIVE_API}/files/${id}`, { method: 'DELETE' })
+}
+
+// ---- Cover images ----------------------------------------------------------
+
+/**
+ * Upload a cover image into the notebook folder and record its id in the
+ * folder's appProperties. Two-step (create metadata, then PATCH the bytes) so
+ * we can stream the binary File directly. Returns the new cover file id.
+ */
+export async function uploadCover(
+  token: string,
+  notebookId: string,
+  file: File,
+): Promise<string> {
+  const mimeType = file.type || 'image/png'
+  const created = await driveJson<{ id: string }>(token, `${DRIVE_API}/files?fields=id`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name: 'cover', mimeType, parents: [notebookId] }),
+  })
+  await driveFetch(token, `${UPLOAD_API}/files/${created.id}?uploadType=media`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': mimeType },
+    body: file,
+  })
+  await updateNotebook(token, notebookId, { coverId: created.id })
+  return created.id
+}
+
+/**
+ * Fetch a cover image and return an object URL for use in <img src>. The caller
+ * is responsible for revoking it. Returns null if it can't be loaded.
+ */
+export async function fetchCoverUrl(token: string, fileId: string): Promise<string | null> {
+  try {
+    const res = await driveFetch(token, `${DRIVE_API}/files/${fileId}?alt=media`)
+    const blob = await res.blob()
+    return URL.createObjectURL(blob)
+  } catch {
+    return null
+  }
 }
 
 // ---- Pages -----------------------------------------------------------------

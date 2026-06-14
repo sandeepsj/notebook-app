@@ -18,12 +18,13 @@ export function Login() {
     <div className="login">
       <div className="login-card">
         <div className="login-mark" aria-hidden="true">
-          ✎
+          📓
         </div>
+        <p className="login-tagline">welcome to your</p>
         <h1 className="login-title">Notebook</h1>
         <p className="login-sub">
-          Handwrite with your stylus. Your notebooks live in your own Google
-          Drive.
+          A cosy shelf of notebooks — write with your stylus, type, or dictate.
+          Everything lives in your own Google Drive.
         </p>
         <button className="btn btn-primary login-btn" onClick={handleSignIn} disabled={signingIn}>
           {signingIn ? 'Signing in…' : 'Sign in with Google'}

@@ -57,4 +57,6 @@ export interface NotebookMeta {
   pageCount: number
   createdAt: string
   updatedAt: string
+  /** Drive file id of the uploaded cover image, if any. */
+  coverId?: string
 }

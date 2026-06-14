@@ -1,40 +1,52 @@
-/* ---- Login --------------------------------------------------------------- */
+/* ===========================================================================
+   Cozy stationery UI — warm desk, white ruled paper, a shelf of notebooks
+   =========================================================================== */
+
+/* ---- Login ---------------------------------------------------------------- */
 .login {
   min-height: 100%;
   display: grid;
   place-items: center;
   padding: 1.5rem;
-  background: radial-gradient(circle at 30% 20%, #fff 0%, var(--paper) 55%);
 }
 .login-card {
-  width: min(420px, 100%);
-  background: var(--paper-raised);
+  width: min(430px, 100%);
+  background: var(--paper);
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
-  padding: 2.75rem 2.25rem;
+  padding: 3rem 2.5rem 2.75rem;
   text-align: center;
 }
 .login-mark {
-  font-size: 2.75rem;
-  width: 76px;
-  height: 76px;
+  font-size: 2.4rem;
+  width: 84px;
+  height: 84px;
   margin: 0 auto 1.25rem;
   display: grid;
   place-items: center;
-  border-radius: 20px;
+  border-radius: 24px;
   background: var(--accent-soft);
+  transform: rotate(-4deg);
+  box-shadow: var(--shadow-sm);
+}
+.login-tagline {
+  font-family: var(--font-hand);
+  font-size: 1.5rem;
   color: var(--accent);
+  transform: rotate(-2deg);
 }
 .login-title {
-  font-size: 1.9rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
+  font-family: var(--font-display);
+  font-size: 2.4rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin-top: 0.25rem;
 }
 .login-sub {
-  margin: 0.6rem 0 1.75rem;
+  margin: 0.75rem 0 1.9rem;
   color: var(--ink-soft);
-  line-height: 1.5;
+  line-height: 1.55;
 }
 .login-btn {
   width: 100%;
@@ -54,27 +66,29 @@
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 0.85rem clamp(1rem, 4vw, 2.5rem);
-  background: rgba(250, 248, 243, 0.85);
+  padding: 0.9rem clamp(1rem, 4vw, 2.5rem);
+  background: rgba(246, 239, 226, 0.82);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--line);
 }
 .brand {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
-  font-weight: 700;
-  font-size: 1.15rem;
+  gap: 0.65rem;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.3rem;
   letter-spacing: -0.01em;
 }
 .brand-mark {
   display: grid;
   place-items: center;
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
   background: var(--accent-soft);
-  color: var(--accent);
+  transform: rotate(-5deg);
+  font-size: 1.1rem;
 }
 .topbar-right {
   display: flex;
@@ -101,63 +115,155 @@
   font-weight: 700;
 }
 
-/* ---- Home grid ------------------------------------------------------------ */
-.home-main {
-  padding: clamp(1.25rem, 4vw, 2.5rem);
-  max-width: 1200px;
-  margin: 0 auto;
+/* ---- Home / shelf --------------------------------------------------------- */
+.home {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
 }
-.grid {
+.home-main {
+  padding: clamp(1.5rem, 4vw, 3rem) clamp(1.25rem, 4vw, 3rem) 4rem;
+  max-width: 1180px;
+  margin: 0 auto;
+  width: 100%;
+}
+.home-head {
+  margin-bottom: 2rem;
+}
+.home-sub {
+  font-family: var(--font-hand);
+  font-size: 1.5rem;
+  color: var(--accent);
+  transform: rotate(-1.5deg);
+  display: inline-block;
+}
+.home-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin-top: 0.1rem;
+}
+.shelf {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: clamp(1rem, 3vw, 1.75rem);
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: clamp(1.5rem, 4vw, 2.5rem) clamp(1.25rem, 3vw, 2rem);
+  align-items: end;
 }
 
-/* ---- Notebook card -------------------------------------------------------- */
-.card {
+/* ---- Book card ------------------------------------------------------------ */
+.book {
   position: relative;
+  animation: riseIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
-.card-cover {
+@keyframes riseIn {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.book:nth-child(2) { animation-delay: 0.04s; }
+.book:nth-child(3) { animation-delay: 0.08s; }
+.book:nth-child(4) { animation-delay: 0.12s; }
+.book:nth-child(5) { animation-delay: 0.16s; }
+.book:nth-child(6) { animation-delay: 0.2s; }
+.book:nth-child(7) { animation-delay: 0.24s; }
+.book:nth-child(n + 8) { animation-delay: 0.28s; }
+
+.book-cover {
   display: block;
   width: 100%;
-  aspect-ratio: 3 / 4;
-  border-radius: 10px 14px 14px 10px;
-  background: var(--paper-raised);
-  box-shadow: var(--shadow-md);
+  aspect-ratio: 3 / 4.1;
+  border-radius: 4px 12px 12px 4px;
   position: relative;
   overflow: hidden;
-  transition: transform 0.12s ease, box-shadow 0.12s ease;
+  background: var(--accent);
+  box-shadow: var(--shadow-book);
+  transition: transform 0.16s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.16s ease;
 }
-.card-cover:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--shadow-lg);
+.book-cover:hover {
+  transform: translateY(-5px) rotate(-0.6deg);
+  box-shadow: 0 22px 40px rgba(74, 58, 40, 0.26), 0 6px 12px rgba(74, 58, 40, 0.14);
 }
-.card-cover-spine {
+.book-cover-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+/* spine + page edge — gives every book a 3-D shelf feel */
+.book-cover::before {
+  content: '';
   position: absolute;
   inset: 0 auto 0 0;
-  width: 10px;
-  background: linear-gradient(to right, rgba(0, 0, 0, 0.14), rgba(0, 0, 0, 0));
-}
-.card-cover-ruled {
-  background-image: repeating-linear-gradient(
-    to bottom,
-    transparent 0,
-    transparent 22px,
-    var(--rule-line) 22px,
-    var(--rule-line) 23px
+  width: 12px;
+  background: linear-gradient(
+    to right,
+    rgba(0, 0, 0, 0.28),
+    rgba(0, 0, 0, 0.06) 60%,
+    rgba(255, 255, 255, 0.12)
   );
-  background-position: 0 26px;
+  z-index: 2;
 }
-.card-cover-blank {
-  background-image: radial-gradient(var(--line-strong) 1px, transparent 1px);
-  background-size: 18px 18px;
-  background-position: 14px 14px;
+.book-cover::after {
+  content: '';
+  position: absolute;
+  inset: 0 0 0 auto;
+  width: 3px;
+  background: rgba(255, 255, 255, 0.35);
+  z-index: 2;
 }
-.card-body {
+/* default cover when no image uploaded */
+.book-cover-default {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem 0.9rem;
+  height: 100%;
+  background:
+    radial-gradient(circle at 70% 18%, rgba(255, 255, 255, 0.16), transparent 45%),
+    linear-gradient(150deg, var(--accent) 0%, var(--accent-deep) 100%);
+  text-align: center;
+}
+.book-cover-default.tone-honey {
+  background:
+    radial-gradient(circle at 70% 18%, rgba(255, 255, 255, 0.2), transparent 45%),
+    linear-gradient(150deg, #e0a73f 0%, #c98a1f 100%);
+}
+.book-cover-default.tone-sage {
+  background:
+    radial-gradient(circle at 70% 18%, rgba(255, 255, 255, 0.16), transparent 45%),
+    linear-gradient(150deg, #6f8f6a 0%, #56754f 100%);
+}
+.book-cover-default.tone-indigo {
+  background:
+    radial-gradient(circle at 70% 18%, rgba(255, 255, 255, 0.16), transparent 45%),
+    linear-gradient(150deg, #5566a6 0%, #3f4f86 100%);
+}
+.book-label {
+  background: var(--paper);
+  border-radius: 4px;
+  padding: 0.65rem 0.6rem;
+  width: 100%;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.18);
+  transform: rotate(-1.2deg);
+}
+.book-label-title {
+  font-family: var(--font-hand);
+  font-size: 1.35rem;
+  line-height: 1.15;
+  color: var(--ink);
+  word-break: break-word;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.book-body {
   margin-top: 0.7rem;
-  padding-right: 1.75rem;
+  padding-right: 1.6rem;
 }
-.card-title {
+.book-title {
+  font-family: var(--font-display);
   font-size: 0.98rem;
   font-weight: 600;
   text-align: left;
@@ -165,77 +271,81 @@
   padding: 0;
   line-height: 1.3;
 }
-.card-title:hover {
+.book-title:hover {
   color: var(--accent);
 }
-.card-title-input {
+.book-title-input {
   width: 100%;
+  font-family: var(--font-display);
   font-size: 0.98rem;
   font-weight: 600;
   padding: 2px 4px;
   border: 1px solid var(--accent);
   border-radius: 6px;
   outline: none;
+  background: var(--paper);
 }
-.card-meta {
-  margin-top: 0.25rem;
-  font-size: 0.8rem;
+.book-meta {
+  margin-top: 0.2rem;
+  font-size: 0.78rem;
   color: var(--ink-faint);
   display: flex;
   flex-wrap: wrap;
   gap: 0.3rem;
   align-items: center;
 }
-.card-dot {
+.book-dot {
   opacity: 0.5;
 }
-.card-menu {
+.book-menu {
   position: absolute;
-  top: 0.4rem;
-  right: 0.4rem;
+  top: 0.45rem;
+  right: 0.45rem;
+  z-index: 3;
 }
-.card-menu-btn {
+.book-menu-btn {
   width: 30px;
   height: 30px;
   border-radius: 8px;
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   color: var(--ink-soft);
-  background: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 253, 248, 0.85);
   display: grid;
   place-items: center;
+  box-shadow: var(--shadow-sm);
 }
-.card-menu-btn:hover {
+.book-menu-btn:hover {
   background: #fff;
 }
 .menu-popover {
   position: absolute;
   top: 36px;
   right: 0;
-  background: var(--paper-raised);
+  background: var(--paper);
   border: 1px solid var(--line);
-  border-radius: 10px;
+  border-radius: 12px;
   box-shadow: var(--shadow-lg);
-  padding: 4px;
-  min-width: 130px;
+  padding: 5px;
+  min-width: 140px;
   z-index: 20;
 }
 .menu-item {
   display: block;
   width: 100%;
   text-align: left;
-  padding: 0.55rem 0.7rem;
-  border-radius: 7px;
+  padding: 0.6rem 0.7rem;
+  border-radius: 8px;
   font-size: 0.9rem;
   color: var(--ink);
 }
 .menu-item:hover {
-  background: rgba(31, 35, 51, 0.05);
+  background: rgba(74, 58, 40, 0.06);
 }
 .menu-item-danger {
   color: var(--danger);
 }
 .menu-item-danger:hover {
-  background: rgba(212, 73, 63, 0.08);
+  background: rgba(192, 57, 43, 0.08);
 }
 
 /* ---- Empty / states ------------------------------------------------------- */
@@ -248,8 +358,9 @@
 }
 .empty-title {
   margin-top: 1rem;
-  font-size: 1.4rem;
-  font-weight: 700;
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 600;
 }
 .empty-sub {
   margin: 0.4rem 0 1.5rem;
@@ -275,9 +386,9 @@
   margin-bottom: 1.5rem;
 }
 .banner-error {
-  background: rgba(212, 73, 63, 0.08);
+  background: rgba(192, 57, 43, 0.08);
   color: var(--danger);
-  border: 1px solid rgba(212, 73, 63, 0.2);
+  border: 1px solid rgba(192, 57, 43, 0.2);
 }
 
 /* ---- Modal ---------------------------------------------------------------- */
@@ -285,44 +396,49 @@
   position: fixed;
   inset: 0;
   z-index: 50;
-  background: rgba(31, 35, 51, 0.4);
+  background: rgba(43, 39, 34, 0.42);
   backdrop-filter: blur(3px);
   display: grid;
   place-items: center;
   padding: 1.5rem;
 }
 .modal {
-  width: min(440px, 100%);
-  background: var(--paper-raised);
+  width: min(460px, 100%);
+  background: var(--paper);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
-  padding: 1.75rem;
+  padding: 1.9rem;
+  max-height: 90vh;
+  overflow-y: auto;
 }
 .modal-title {
-  font-size: 1.35rem;
-  font-weight: 700;
-  margin-bottom: 1.25rem;
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1.4rem;
 }
 .field {
   display: block;
-  margin-bottom: 1.25rem;
+  margin-bottom: 1.4rem;
 }
 .field-label {
   display: block;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--ink-soft);
-  margin-bottom: 0.45rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 0.5rem;
 }
 .field-input {
   width: 100%;
-  min-height: 46px;
-  padding: 0 0.85rem;
-  border: 1px solid var(--line-strong);
+  min-height: 48px;
+  padding: 0 0.9rem;
+  border: 1.5px solid var(--line-strong);
   border-radius: var(--radius);
   font-size: 1rem;
   outline: none;
-  background: var(--paper);
+  background: #fff;
 }
 .field-input:focus {
   border-color: var(--accent);
@@ -344,7 +460,7 @@
   font-weight: 600;
   font-size: 0.9rem;
   color: var(--ink-soft);
-  background: var(--paper);
+  background: #fff;
 }
 .style-option.is-selected {
   border-color: var(--accent);
@@ -353,7 +469,7 @@
 }
 .style-preview {
   width: 100%;
-  height: 56px;
+  height: 54px;
   border-radius: 8px;
   background: #fff;
   border: 1px solid var(--line);
@@ -362,14 +478,71 @@
   background-image: repeating-linear-gradient(
     to bottom,
     transparent 0,
-    transparent 12px,
-    var(--rule-line) 12px,
-    var(--rule-line) 13px
+    transparent 11px,
+    var(--rule-blue) 11px,
+    var(--rule-blue) 12px
   );
 }
 .style-preview-blank {
   background-image: radial-gradient(var(--line-strong) 1px, transparent 1px);
   background-size: 12px 12px;
+}
+
+/* cover upload */
+.cover-drop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  min-height: 150px;
+  padding: 1rem;
+  border: 2px dashed var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--desk);
+  color: var(--ink-soft);
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.cover-drop:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.cover-drop-icon {
+  font-size: 1.8rem;
+}
+.cover-drop-hint {
+  font-size: 0.8rem;
+  color: var(--ink-faint);
+}
+.cover-preview-wrap {
+  position: relative;
+  width: 130px;
+  margin: 0 auto;
+}
+.cover-preview {
+  width: 130px;
+  aspect-ratio: 3 / 4.1;
+  object-fit: cover;
+  border-radius: 4px 10px 10px 4px;
+  box-shadow: var(--shadow-book);
+  display: block;
+}
+.cover-remove {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: #fff;
+  font-size: 0.9rem;
+  display: grid;
+  place-items: center;
+  box-shadow: var(--shadow-sm);
 }
 .modal-actions {
   display: flex;
@@ -383,20 +556,21 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: var(--paper);
 }
 .editor-bar {
   display: flex;
   align-items: center;
   gap: 1rem;
   padding: 0.6rem clamp(0.75rem, 3vw, 1.5rem);
-  background: var(--paper-raised);
+  background: rgba(246, 239, 226, 0.85);
+  backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--line);
 }
 .editor-title {
   flex: 1;
-  font-size: 1.05rem;
-  font-weight: 700;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 600;
   text-align: center;
   white-space: nowrap;
   overflow: hidden;
@@ -427,13 +601,13 @@
   color: var(--ink-soft);
 }
 .tool-btn:hover:not(:disabled) {
-  background: rgba(31, 35, 51, 0.06);
+  background: rgba(74, 58, 40, 0.07);
 }
 .tool-btn:disabled {
   opacity: 0.35;
 }
 
-/* Document sheet */
+/* The writing surface: white Classmate-style ruled paper */
 .editor-stage {
   flex: 1;
   overflow: auto;
@@ -443,28 +617,41 @@
   align-items: flex-start;
 }
 .page-sheet {
-  width: min(800px, 100%);
+  position: relative;
+  width: min(820px, 100%);
   min-height: 100%;
-  background: var(--paper-raised);
-  border-radius: 8px;
+  background: var(--paper);
+  border-radius: 6px;
   box-shadow: var(--shadow-lg);
-  padding: clamp(1.25rem, 4vw, 2.75rem);
+  padding: 40px 40px 48px 66px;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.25rem;
 }
 .sheet-ruled {
   background-image: repeating-linear-gradient(
     to bottom,
     transparent 0,
-    transparent 35px,
-    var(--rule-line) 35px,
-    var(--rule-line) 36px
+    transparent 33px,
+    var(--rule-blue) 33px,
+    var(--rule-blue) 34px
   );
-  background-position: 0 calc(clamp(1.25rem, 4vw, 2.75rem) + 4px);
+  background-position: 0 40px;
+  background-attachment: local;
+}
+/* red margin line */
+.sheet-ruled::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50px;
+  width: 2px;
+  background: var(--margin-red);
+  opacity: 0.7;
 }
 
-/* Text block */
+/* Text block — sits on the ruled lines */
 .block-text {
   width: 100%;
   border: none;
@@ -472,8 +659,9 @@
   resize: none;
   background: transparent;
   color: var(--ink);
-  font-size: 1.1rem;
-  line-height: 36px;
+  font-family: var(--font-body);
+  font-size: 1.05rem;
+  line-height: 34px;
   padding: 0;
   overflow: hidden;
 }
@@ -483,11 +671,12 @@
 
 /* Sketch block */
 .sketch-block {
-  border: 1px solid var(--line);
+  border: 1px solid var(--line-strong);
   border-radius: 12px;
   overflow: hidden;
-  margin: 0.5rem 0;
+  margin: 0.6rem 0;
   background: #fff;
+  box-shadow: var(--shadow-sm);
 }
 .sketch-bar {
   display: flex;
@@ -495,7 +684,7 @@
   justify-content: space-between;
   gap: 0.5rem;
   padding: 0.4rem 0.5rem;
-  background: var(--paper);
+  background: var(--desk);
   border-bottom: 1px solid var(--line);
 }
 .sketch-tools {
@@ -520,14 +709,14 @@
   background: transparent;
 }
 .mini-btn:hover {
-  background: rgba(31, 35, 51, 0.06);
+  background: rgba(74, 58, 40, 0.07);
 }
 .mini-btn.is-active {
   background: var(--accent-soft);
   box-shadow: inset 0 0 0 2px var(--accent);
 }
 .mini-remove:hover {
-  background: rgba(212, 73, 63, 0.1);
+  background: rgba(192, 57, 43, 0.1);
 }
 .mini-swatch {
   width: 24px;
@@ -569,8 +758,8 @@
 .add-block-row {
   display: flex;
   gap: 0.5rem;
-  margin-top: 0.75rem;
-  opacity: 0.7;
+  margin-top: 1rem;
+  opacity: 0.65;
   transition: opacity 0.15s ease;
 }
 .page-sheet:hover .add-block-row {
@@ -579,7 +768,7 @@
 .add-block-btn {
   min-height: 38px;
   padding: 0 0.9rem;
-  border-radius: 10px;
+  border-radius: 999px;
   font-size: 0.85rem;
   font-weight: 600;
   color: var(--ink-soft);
@@ -599,7 +788,8 @@
   justify-content: center;
   gap: 1rem;
   padding: 0.6rem;
-  background: var(--paper-raised);
+  background: rgba(246, 239, 226, 0.85);
+  backdrop-filter: blur(12px);
   border-top: 1px solid var(--line);
 }
 .pagenav-btn {
@@ -614,7 +804,7 @@
   place-items: center;
 }
 .pagenav-btn:hover:not(:disabled) {
-  background: rgba(31, 35, 51, 0.06);
+  background: rgba(74, 58, 40, 0.07);
 }
 .pagenav-btn:disabled {
   opacity: 0.3;
@@ -623,12 +813,25 @@
   color: var(--accent);
 }
 .pagenav-label {
-  font-size: 0.95rem;
-  font-weight: 600;
+  font-family: var(--font-hand);
+  font-size: 1.3rem;
   min-width: 120px;
   text-align: center;
+  color: var(--ink);
 }
 .pagenav-of {
   color: var(--ink-faint);
-  font-weight: 500;
+}
+
+/* cover image loading placeholder */
+.book-cover-loading {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, var(--desk-deep) 30%, var(--paper) 50%, var(--desk-deep) 70%);
+  background-size: 200% 100%;
+  animation: coverShimmer 1.3s ease-in-out infinite;
+}
+@keyframes coverShimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
 }

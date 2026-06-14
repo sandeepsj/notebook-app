@@ -9,13 +9,53 @@ everything neatly stored and organized in **Google Drive**.
 
 ## Tech Stack
 
-- **Frontend:** React Single Page Application (SPA).
-- **Hosting:** GitHub Pages (static hosting — no custom server).
-- **Backend / storage:** Google Drive API, accessed directly from the browser
-  via Google OAuth. Because GitHub Pages is static, all persistence happens
-  client-side against the user's own Drive (e.g. a dedicated `Notebooks` folder
-  or the app-data folder).
-- **Auth:** Google OAuth 2.0 (sign in with Google, authorize Drive access).
+Follows the **`react-spa-google-stack`** skill (from `sandeepsj/claude-skills`):
+a static React SPA on GitHub Pages with Google OAuth + Google Drive as the data
+store — no backend to maintain.
+
+- **Frontend:** React + TypeScript SPA, built with **Vite**.
+- **Routing:** `HashRouter` (GitHub Pages has no server-side rewrites, so hash
+  routing avoids 404s on deep links / page links).
+- **Hosting:** GitHub Pages (static), deployed via GitHub Actions.
+- **Auth:** Google Identity Services (GIS) OAuth — token requested from a user
+  click; **never** silent `prompt: ''`.
+- **Storage:** Google Drive API with the `drive.file` scope — notebooks live in
+  the user's own Drive, visible in their Drive UI, privacy-preserving.
+- **Optional AI:** shared LLM proxy (`llm-proxy-smoky.vercel.app`) reusing the
+  Google access token — candidate for handwriting → text via a vision model.
+
+### Standard Setup (per the skill)
+
+- **Scaffold:** `npm create vite@latest notebook-app -- --template react-ts`,
+  then `npm i react-router-dom`.
+- **`vite.config.ts`:** set `base: '/notebook-app/'` (must match the repo name)
+  so production assets resolve correctly.
+- **`index.html`:** include the GIS client —
+  `<script src="https://accounts.google.com/gsi/client" async defer></script>`.
+- **Session persistence (the critical pattern):**
+  - `localStorage` holds user metadata (email/name/picture) — survives tab close.
+  - `sessionStorage` holds the access token — clears on tab close (~1h lifetime).
+  - On mount, restore synchronously via `loadSession()`; on any `401`, clear both
+    stores and re-authenticate. This prevents the "logged out on refresh" bug.
+- **Files to create:** `src/services/googleAuth.ts` (sign-in + session
+  save/load/clear), `src/services/drive.ts` (folder helpers + multipart upload),
+  `src/hooks/useAuth.ts`, `App.tsx` wrapped in `HashRouter`,
+  `.github/workflows/deploy.yml`.
+- **Google Cloud (one-time):** create project → enable Drive API → create OAuth
+  Web Client → authorized origins `http://localhost:5173` and
+  `https://<username>.github.io` → add yourself as test user → store Client ID in
+  `VITE_GOOGLE_CLIENT_ID` (local `.env` + GitHub Secret).
+- **Deploy:** GitHub Actions workflow (`actions/deploy-pages`) builds with
+  `VITE_GOOGLE_CLIENT_ID` from secrets; one-time enable Pages with
+  `build_type=workflow`.
+
+### Suggested Drive Storage Model
+
+- One Drive folder per notebook inside a top-level `Notebooks` app folder.
+- One file per page (e.g. JSON holding ink strokes + recognized text + sketch
+  layer), so pages load independently and the index can link by page number.
+- Use folder `appProperties` (truncated to ~100 chars) for cheap home-page
+  listing (title, page count, cover/excerpt) without downloading every page.
 
 ---
 
@@ -50,7 +90,12 @@ everything neatly stored and organized in **Google Drive**.
 ### Page Types
 - [ ] **Ruled** notebooks (lined pages).
 - [ ] **Unruled** (blank) notebooks.
-- [ ] **Free sketch** mode — draw freely, not just write text.
+
+### Free Sketch (overlay, not a page type)
+- [ ] **Free sketch is available on any page** — it is *not* a separate page
+      type. A user can sketch freely on both ruled and unruled pages, mixed in
+      with handwriting/text.
+- [ ] Sketch layer coexists with the handwriting/text layer on the same page.
 
 ### Editing & Tools
 - [ ] **Basic text editor** for the recognized / typed text.
@@ -73,18 +118,41 @@ everything neatly stored and organized in **Google Drive**.
 
 ---
 
-## Open-Source Reuse (to evaluate)
+## Existing Open-Source Projects (landscape)
 
-Don't reinvent things that already exist — pick from mature open-source libraries:
+Researched whether something already does "the same thing." Conclusion: there are
+excellent **full handwriting apps**, but they are **native/desktop**, not a
+React-on-the-web stack — so they're references, not drop-in reuse for this
+project. The reusable pieces for *our* stack are **web component libraries**.
 
-- **Rich text editor:** TipTap, Lexical, Slate, Quill, or ProseMirror.
-- **Sketch / drawing canvas:** Excalidraw, tldraw, `react-sketch-canvas`, or
-  `perfect-freehand` for natural stylus strokes.
-- **Handwriting recognition:** evaluate options such as MyScript iink,
-  Google Handwriting Input / Input Tools, or an on-device/ML model — pick based
-  on accuracy, licensing, and offline support.
-- **Google Drive integration:** official `gapi` / Google Identity Services
-  client libraries for OAuth + Drive REST API.
+### Full handwriting note apps (reference, not directly reusable)
+- **Saber** (`saber-notes/saber`) — cross-platform (Flutter) handwriting notes
+  with sync. Closest in spirit; ruled/unruled templates, stylus-first. Not web/React.
+- **Xournal++** — mature desktop (C++) handwriting + PDF annotation.
+- **Rnote** — Rust/GTK4, stylus/pressure-focused sketching + notes.
+- **OmniNotes** — Android notes with sketches and Google Drive/Dropbox sync.
+
+> None target a static React SPA on GitHub Pages, so we reuse libraries rather
+> than fork an app.
+
+### Reusable web/React building blocks (the actual reuse plan)
+- **Rich text editor:** **TipTap** (MIT, headless, React) or **BlockNote**
+  (Notion-style, built on TipTap/ProseMirror) for the recognized-text editor and
+  the index page.
+- **Sketch / ink canvas:** **Excalidraw** or **tldraw** (full whiteboard React
+  components), or **`perfect-freehand`** for natural pressure-aware stylus
+  strokes if we want a lightweight custom canvas. A TipTap **Excalidraw
+  extension** exists, which could embed sketches inline in a page.
+- **Stylus input:** Pointer Events API (`pointerType === 'pen'`, pressure, tilt)
+  — works on the OnePlus Stylo and other active styluses.
+- **Handwriting → text recognition** (no strong open-source web option exists):
+  - **MyScript iink** — best-in-class, commercial.
+  - **LLM vision via the skill's LLM proxy** — send the page's ink/image to a
+    vision model (Gemini/Claude) for transcription. Reuses the existing Google
+    token; good fit for this serverless stack. *(Leading recommendation.)*
+  - On-device JS models (e.g. TF.js) — possible but lower accuracy/more work.
+- **Google Drive integration:** Google Identity Services + Drive REST v3 directly
+  (per the skill), not a heavy SDK.
 
 ---
 

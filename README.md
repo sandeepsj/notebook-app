@@ -33,9 +33,12 @@ Actions secret (prod).
 
 ## Status
 
-**Foundation built.** Working: Google sign-in (session survives refresh), Drive
-storage layer, and a home page to create / list / rename / delete notebooks. The
-page editor — stylus canvas, free-sketch overlay, handwriting recognition, and
-the page navigator — is next. See [docs/FEATURES.md](docs/FEATURES.md) for the
-full scope.
+**Core app working.** Google sign-in (session survives refresh), Drive storage,
+a home page to create / list / rename / delete notebooks, and a full page editor:
+stylus drawing (pressure-aware, via `perfect-freehand`), pen / highlighter /
+sketch / eraser tools with colour and size, ruled & blank pages, multi-page
+navigation with autosave to Drive, undo, and handwriting → text recognition
+through the LLM proxy (Claude vision). See [docs/FEATURES.md](docs/FEATURES.md)
+for the full scope and remaining polish (per-notebook index page, richer text
+editor).
 </content>

@@ -1,46 +1,26 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
+import { useGuard } from '@/hooks/useGuard'
 import {
   listNotebooks,
   createNotebook,
   updateNotebook,
   deleteNotebook,
-  UnauthorizedError,
 } from '@/services/drive'
 import type { NotebookMeta, PageStyle } from '@/types'
 import { CreateNotebookModal } from '@/components/CreateNotebookModal'
 import { NotebookCard } from '@/components/NotebookCard'
 
 export function Home() {
-  const { auth, signOut, forceReauth } = useAuth()
+  const { auth, signOut } = useAuth()
   const token = auth!.accessToken
   const navigate = useNavigate()
+  const { guard, error } = useGuard()
 
   const [notebooks, setNotebooks] = useState<NotebookMeta[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const [creating, setCreating] = useState(false)
-
-  // Wrap a Drive call so an expired token drops back to the login screen.
-  // All setState happens after an await, so this is safe to call from an effect.
-  const guard = useCallback(
-    async <T,>(fn: () => Promise<T>): Promise<T | undefined> => {
-      try {
-        const result = await fn()
-        setError(null)
-        return result
-      } catch (e) {
-        if (e instanceof UnauthorizedError) {
-          forceReauth()
-          return undefined
-        }
-        setError(e instanceof Error ? e.message : 'Something went wrong')
-        return undefined
-      }
-    },
-    [forceReauth],
-  )
 
   // Fetch the notebook list. Sets state only after awaiting (no synchronous
   // setState in the mount effect). `loading` starts true, so the initial load

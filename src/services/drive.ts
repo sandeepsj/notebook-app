@@ -120,6 +120,13 @@ function toMeta(f: DriveFolder): NotebookMeta {
   }
 }
 
+export async function getNotebook(token: string, id: string): Promise<NotebookMeta> {
+  const fields = 'id,name,modifiedTime,appProperties'
+  const url = `${DRIVE_API}/files/${id}?fields=${encodeURIComponent(fields)}`
+  const folder = await driveJson<DriveFolder>(token, url)
+  return toMeta(folder)
+}
+
 export async function listNotebooks(token: string): Promise<NotebookMeta[]> {
   const appFolder = await getAppFolderId(token)
   const q = `'${appFolder}' in parents and mimeType='${FOLDER_MIME}' and trashed=false`
